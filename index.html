@@ -62,6 +62,7 @@
             color: #0077c8;
             text-decoration: none;
             font-weight: 500;
+            cursor: pointer;
             transition: color 0.2s ease, border-bottom 0.2s ease;
             border-bottom: 1px solid transparent;
         }
@@ -69,6 +70,27 @@
         a:hover {
             color: #00a8e8;
             border-bottom: 1px solid #00a8e8;
+        }
+
+        #playerContainer {
+            display: none;
+            max-width: 700px;
+            margin: 30px auto;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 120, 200, 0.15);
+            background: #000;
+        }
+
+        video::-webkit-media-controls-download-button {
+            display: none;
+        }
+
+        video::-webkit-media-controls-enclosure {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -83,9 +105,24 @@
 
     <ul id="resourceList"></ul>
 
+    <div id="playerContainer">
+        <video
+            id="videoPlayer"
+            controls
+            controlsList="nodownload noplaybackrate"
+            disablePictureInPicture
+            oncontextmenu="return false"
+        >
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
     <script>
         const list = document.getElementById("resourceList");
         const searchInput = document.getElementById("searchInput");
+        const playerContainer = document.getElementById("playerContainer");
+        const videoPlayer = document.getElementById("videoPlayer");
+
         let allVideos = [];
 
         function renderList(items) {
@@ -100,9 +137,20 @@
                 const li = document.createElement("li");
                 const link = document.createElement("a");
 
-                link.href = item.file;
                 link.textContent = item.title;
-                link.target = "_blank";
+
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+
+                    videoPlayer.pause();
+                    videoPlayer.src = item.file;
+                    videoPlayer.load();
+
+                    playerContainer.style.display = "block";
+                    videoPlayer.play();
+
+                    playerContainer.scrollIntoView({ behavior: "smooth" });
+                });
 
                 li.appendChild(link);
                 list.appendChild(li);
