@@ -1,140 +1,310 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Videos</title>
+<meta charset="UTF-8">
+<title>Player</title>
 
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            padding: 20px;
-            background: linear-gradient(135deg, #f5fbff, #eef6fb);
-            color: #1f2d3d;
-        }
+<style>
+/* ===== RESET / BASE ===== */
+* {
+    box-sizing: border-box;
+}
 
-        h1 {
-            text-align: center;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: #0a3d62;
-            margin-bottom: 20px;
-        }
+body {
+    margin: 0;
+    background: #000;
+    font-family: "Segoe UI", Arial, sans-serif;
+    overflow: hidden;
+    color: #fff;
+}
 
-        .search-container {
-            max-width: 700px;
-            margin: 0 auto 15px auto;
-        }
+/* ===== PLAYER LAYOUT ===== */
+.player-wrapper {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+}
 
-        #searchInput {
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 15px;
-            border-radius: 8px;
-            border: 1px solid #cfe6f5;
-            outline: none;
-            box-shadow: 0 4px 12px rgba(0, 120, 200, 0.06);
-        }
+video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
 
-        #searchInput:focus {
-            border-color: #00a8e8;
-        }
+/* Disable native UI bits */
+video::-webkit-media-controls {
+    display: none !important;
+}
 
-        ul {
-            max-width: 700px;
-            margin: 20px auto;
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 25px 35px;
-            box-shadow: 0 10px 30px rgba(0, 120, 200, 0.08);
-        }
+video::-webkit-media-controls-enclosure {
+    display: none !important;
+}
 
-        li {
-            margin-bottom: 14px;
-            line-height: 1.6;
-        }
+/* ===== CENTER PLAY BUTTON ===== */
+.center-play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
 
-        li::marker {
-            color: #00a8e8;
-        }
+.center-play.hidden {
+    display: none;
+}
 
-        a {
-            color: #0077c8;
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.2s ease, border-bottom 0.2s ease;
-            border-bottom: 1px solid transparent;
-        }
+/* ===== CONTROLS ===== */
+.controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 15px 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
 
-        a:hover {
-            color: #00a8e8;
-            border-bottom: 1px solid #00a8e8;
-        }
-    </style>
+.player-wrapper.show-controls .controls {
+    opacity: 1;
+}
+
+.controls-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Buttons */
+.btn {
+    cursor: pointer;
+    font-size: 18px;
+    opacity: 0.85;
+}
+
+.btn:hover {
+    opacity: 1;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress {
+    position: relative;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+}
+
+.progress-filled {
+    height: 100%;
+    width: 0%;
+    background: #e50914;
+}
+
+/* ===== TIME ===== */
+.time {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+/* ===== LESSONS OVERLAY ===== */
+.lessons-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 320px;
+    height: 100%;
+    background: rgba(20,20,20,0.97);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.lessons-panel.open {
+    transform: translateX(0);
+}
+
+.lessons-panel h3 {
+    margin: 0 0 15px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.lesson {
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #ccc;
+}
+
+.lesson:hover {
+    background: #222;
+}
+
+.lesson.active {
+    background: #e50914;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ===== HIDE CURSOR ===== */
+.player-wrapper.hide-cursor {
+    cursor: none;
+}
+</style>
 </head>
 
 <body>
 
-    <h1>Videos</h1>
+<div class="player-wrapper" id="playerWrapper">
 
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search videos..." />
+    <video id="video"
+        disablePictureInPicture
+        oncontextmenu="return false">
+    </video>
+
+    <div class="center-play" id="centerPlay">▶</div>
+
+    <div class="controls" id="controls">
+        <div class="progress" id="progress">
+            <div class="progress-filled" id="progressFilled"></div>
+        </div>
+
+        <div class="controls-row">
+            <div class="btn" id="playBtn">▶</div>
+            <div class="time" id="time">0:00 / 0:00</div>
+            <div style="flex:1"></div>
+            <div class="btn" id="lessonsBtn">☰</div>
+        </div>
     </div>
 
-    <ul id="resourceList"></ul>
+    <div class="lessons-panel" id="lessonsPanel">
+        <h3>Lessons</h3>
+        <div id="lessonList"></div>
+    </div>
 
-    <script>
-        const list = document.getElementById("resourceList");
-        const searchInput = document.getElementById("searchInput");
-        let allVideos = [];
+</div>
 
-        function renderList(items) {
-            list.innerHTML = "";
+<script>
+const video = document.getElementById("video");
+const wrapper = document.getElementById("playerWrapper");
+const centerPlay = document.getElementById("centerPlay");
+const playBtn = document.getElementById("playBtn");
+const timeEl = document.getElementById("time");
+const progress = document.getElementById("progress");
+const progressFilled = document.getElementById("progressFilled");
+const lessonsBtn = document.getElementById("lessonsBtn");
+const lessonsPanel = document.getElementById("lessonsPanel");
+const lessonList = document.getElementById("lessonList");
 
-            if (items.length === 0) {
-                list.innerHTML = "<li>No matching videos found.</li>";
-                return;
-            }
+let hideTimer;
+let videos = [];
+let currentFile = new URLSearchParams(location.search).get("file");
 
-            items.forEach(item => {
-                const li = document.createElement("li");
-                const link = document.createElement("a");
+/* ===== LOAD VIDEOS ===== */
+fetch(`videos.json?v=${Date.now()}`)
+.then(r => r.json())
+.then(data => {
+    videos = data.videos;
+    if (!currentFile && videos.length) currentFile = videos[0].file;
+    loadVideo(currentFile);
+    renderLessons();
+});
 
-                link.textContent = item.title;
+/* ===== VIDEO CONTROL ===== */
+function loadVideo(file) {
+    currentFile = file;
+    video.src = file;
+    video.play().catch(()=>{});
+    highlightLesson();
+}
 
-                // OPEN PLAYER PAGE IN NEW TAB
-                link.addEventListener("click", () => {
-                    window.open(
-                        `player.html?file=${encodeURIComponent(item.file)}`,
-                        "_blank"
-                    );
-                });
+function togglePlay() {
+    if (video.paused) video.play();
+    else video.pause();
+}
 
-                li.appendChild(link);
-                list.appendChild(li);
-            });
-        }
+/* ===== UI UPDATES ===== */
+video.addEventListener("play", () => {
+    centerPlay.classList.add("hidden");
+    playBtn.textContent = "⏸";
+});
 
-        fetch(`videos.json?v=${Date.now()}`)
-            .then(response => response.json())
-            .then(data => {
-                allVideos = data.videos;
-                renderList(allVideos);
-            })
-            .catch(() => {
-                list.innerHTML = "<li>Failed to load videos.</li>";
-            });
+video.addEventListener("pause", () => {
+    centerPlay.classList.remove("hidden");
+    playBtn.textContent = "▶";
+});
 
-        searchInput.addEventListener("input", () => {
-            const query = searchInput.value.toLowerCase();
-            const filtered = allVideos.filter(item =>
-                item.title.toLowerCase().includes(query)
-            );
-            renderList(filtered);
-        });
-    </script>
+video.addEventListener("timeupdate", () => {
+    const pct = (video.currentTime / video.duration) * 100;
+    progressFilled.style.width = pct + "%";
+    timeEl.textContent = format(video.currentTime) + " / " + format(video.duration);
+});
+
+progress.addEventListener("click", e => {
+    const pct = e.offsetX / progress.offsetWidth;
+    video.currentTime = pct * video.duration;
+});
+
+/* ===== LESSONS ===== */
+function renderLessons() {
+    lessonList.innerHTML = "";
+    videos.forEach(v => {
+        const div = document.createElement("div");
+        div.className = "lesson";
+        div.textContent = v.title;
+        div.onclick = () => {
+            loadVideo(v.file);
+            history.replaceState(null, "", `?file=${encodeURIComponent(v.file)}`);
+        };
+        lessonList.appendChild(div);
+    });
+    highlightLesson();
+}
+
+function highlightLesson() {
+    document.querySelectorAll(".lesson").forEach(l => {
+        l.classList.toggle("active", l.textContent + ".mp4" === decodeURIComponent(currentFile));
+    });
+}
+
+/* ===== EVENTS ===== */
+centerPlay.onclick = togglePlay;
+playBtn.onclick = togglePlay;
+
+lessonsBtn.onclick = () => {
+    lessonsPanel.classList.toggle("open");
+};
+
+wrapper.addEventListener("mousemove", () => {
+    wrapper.classList.add("show-controls");
+    wrapper.classList.remove("hide-cursor");
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+        wrapper.classList.remove("show-controls");
+        wrapper.classList.add("hide-cursor");
+    }, 2500);
+});
+
+/* ===== HELPERS ===== */
+function format(t) {
+    if (!t) return "0:00";
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+}
+</script>
 
 </body>
-
 </html>
