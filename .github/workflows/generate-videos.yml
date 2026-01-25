@@ -10,19 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository (full history required)
+      - name: Checkout repository (full history)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Build videos.json (preserve upload order)
+      - name: Build videos.json (true upload order, no duplicates)
         run: |
           echo '{ "videos": [' > videos.json
           first=true
 
-          # Get mp4 files in the order they were added (oldest → newest)
-          git log --diff-filter=A --name-only --pretty=format: -- "*.mp4" | tac | while read file; do
-            [ -f "$file" ] || continue
+          # Get each mp4 file ONCE, ordered by first commit date
+          git ls-files "*.mp4" | while read file; do
+            commit_date=$(git log --diff-filter=A --follow --format=%ct -1 -- "$file")
+            echo "$commit_date|$file"
+          done | sort -n | while IFS="|" read commit_date file; do
 
             title=$(basename "$file" .mp4)
 
