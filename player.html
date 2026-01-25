@@ -50,7 +50,7 @@ video {
     left: 0;
     right: 0;
     bottom: 0;
-    padding: 15px 20px;
+    padding: 18px 24px;
     background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
     display: flex;
     flex-direction: column;
@@ -69,6 +69,7 @@ video {
     gap: 15px;
 }
 
+/* BUTTONS */
 .btn {
     cursor: pointer;
     font-size: 18px;
@@ -76,6 +77,14 @@ video {
 }
 
 .btn:hover { opacity: 1; }
+
+/* TITLE */
+.video-title {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.9;
+}
 
 /* PROGRESS */
 .progress {
@@ -159,6 +168,8 @@ video {
             <div class="progress-filled" id="progressFilled"></div>
         </div>
 
+        <div class="video-title" id="videoTitle"></div>
+
         <div class="controls-row">
             <div class="btn" id="playBtn">▶</div>
             <div class="time" id="time">0:00 / 0:00</div>
@@ -185,6 +196,7 @@ const progressFilled = document.getElementById("progressFilled");
 const lessonsBtn = document.getElementById("lessonsBtn");
 const lessonsPanel = document.getElementById("lessonsPanel");
 const lessonList = document.getElementById("lessonList");
+const videoTitle = document.getElementById("videoTitle");
 
 let videos = [];
 let hideTimer;
@@ -205,6 +217,7 @@ function loadVideo(file) {
     currentFile = file;
     video.src = file;
     video.play().catch(()=>{});
+    updateTitle();
     highlightLesson();
 }
 
@@ -215,7 +228,7 @@ function togglePlay() {
 
 /* VIDEO EVENTS */
 video.addEventListener("click", (e) => {
-    e.stopPropagation();
+    if (lessonsPanel.classList.contains("open")) return;
     togglePlay();
 });
 
@@ -233,6 +246,14 @@ video.addEventListener("timeupdate", () => {
     const pct = (video.currentTime / video.duration) * 100;
     progressFilled.style.width = pct + "%";
     timeEl.textContent = format(video.currentTime) + " / " + format(video.duration);
+});
+
+/* SPACE BAR */
+document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+        e.preventDefault();
+        togglePlay();
+    }
 });
 
 /* PROGRESS SEEK */
@@ -257,6 +278,7 @@ document.addEventListener("click", () => {
     lessonsPanel.classList.remove("open");
 });
 
+/* RENDER LESSONS */
 function renderLessons() {
     lessonList.innerHTML = "";
     videos.forEach(v => {
@@ -283,6 +305,11 @@ function highlightLesson() {
             l.textContent + ".mp4" === decodeURIComponent(currentFile)
         );
     });
+}
+
+function updateTitle() {
+    const match = videos.find(v => v.file === currentFile);
+    videoTitle.textContent = match ? match.title : "";
 }
 
 /* AUTO HIDE CONTROLS */
