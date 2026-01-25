@@ -1,8 +1,6 @@
 { "videos": [
   { "title": "3. Apostrophes Masterclass", "file": "3. Apostrophes Masterclass.mp4" }
 ,
-  { "title": "2. Power of Conjuctions", "file": "2. Power of Conjuctions.mp4" }
-,
   { "title": "3. Apostrophes Masterclass", "file": "3. Apostrophes Masterclass.mp4" }
 ,
   { "title": "9. sample9", "file": "9. sample9.mp4" }
@@ -24,14 +22,4 @@
   { "title": "21. sample21", "file": "21. sample21.mp4" }
 ,
   { "title": "20. sample20", "file": "20. sample20.mp4" }
-,
-  { "title": "19. sample19", "file": "19. sample19.mp4" }
-,
-  { "title": "18. sample18", "file": "18. sample18.mp4" }
-,
-  { "title": "17. sample17", "file": "17. sample17.mp4" }
-,
-  { "title": "16. sample16", "file": "16. sample16.mp4" }
-,
-  { "title": "15. sample15", "file": "15. sample15.mp4" }
 ] }
