@@ -2,245 +2,197 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Videos</title>
+<meta charset="UTF-8">
+<title>Videos</title>
 
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            padding: 20px;
-            background: linear-gradient(135deg, #f5fbff, #eef6fb);
-            color: #1f2d3d;
-        }
+<style>
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5fbff, #eef6fb);
+    color: #1f2d3d;
+}
 
-        h1 {
-            text-align: center;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: #0a3d62;
-            margin-bottom: 20px;
-        }
+h1 {
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #0a3d62;
+    margin-bottom: 20px;
+}
 
-        .search-container {
-            max-width: 1100px;
-            margin: 0 auto 10px auto;
-        }
+.search-container {
+    max-width: 1100px;
+    margin: 0 auto 15px auto;
+}
 
-        #searchInput {
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 15px;
-            border-radius: 8px;
-            border: 1px solid #cfe6f5;
-            outline: none;
-            box-shadow: 0 4px 12px rgba(0, 120, 200, 0.06);
-        }
+#searchInput {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #cfe6f5;
+    box-shadow: 0 4px 12px rgba(0,120,200,0.06);
+}
 
-        #searchInput:focus {
-            border-color: #00a8e8;
-        }
+.content-wrapper {
+    display: flex;
+    max-width: 1100px;
+    margin: 0 auto;
+    gap: 20px;
+}
 
-        .toggle-container {
-            max-width: 1100px;
-            margin: 0 auto 10px auto;
-            text-align: right;
-        }
+/* LIST PANEL */
+.list-panel {
+    width: 35%;
+    position: relative;
+    transition: width 0.3s ease;
+}
 
-        .toggle-btn {
-            background: none;
-            border: none;
-            color: #0077c8;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 500;
-        }
+.list-panel.collapsed {
+    width: 50px;
+}
 
-        .toggle-btn:hover {
-            color: #00a8e8;
-        }
+ul {
+    background: #fff;
+    border-radius: 10px;
+    padding: 25px 35px;
+    box-shadow: 0 10px 30px rgba(0,120,200,0.08);
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
 
-        .content-wrapper {
-            display: flex;
-            gap: 30px;
-            max-width: 1100px;
-            margin: 0 auto;
-            align-items: flex-start;
-        }
+.list-panel.collapsed ul {
+    padding: 0;
+    overflow: hidden;
+}
 
-        /* LIST (40% narrower) */
-        ul {
-            width: 40%;
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 25px 35px;
-            box-shadow: 0 10px 30px rgba(0, 120, 200, 0.08);
-            max-height: calc(100vh - 260px);
-            overflow-y: auto;
-            transition: width 0.3s ease, padding 0.3s ease;
-        }
+/* TOGGLE BUTTON */
+.toggle-arrow {
+    position: absolute;
+    top: 20px;
+    right: -14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: #0077c8;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 4px 10px rgba(0,120,200,0.3);
+}
 
-        ul.collapsed {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+li {
+    margin-bottom: 14px;
+}
 
-        li {
-            margin-bottom: 14px;
-            line-height: 1.6;
-        }
+a {
+    color: #0077c8;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+}
 
-        li::marker {
-            color: #00a8e8;
-        }
+/* PLAYER */
+#playerContainer {
+    width: 65%;
+    position: sticky;
+    top: 20px;
+    display: none;
+    transition: width 0.3s ease;
+}
 
-        a {
-            color: #0077c8;
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: color 0.2s ease, border-bottom 0.2s ease;
-            border-bottom: 1px solid transparent;
-        }
+.list-panel.collapsed + #playerContainer {
+    width: calc(100% - 50px);
+}
 
-        a:hover {
-            color: #00a8e8;
-            border-bottom: 1px solid #00a8e8;
-        }
+video {
+    width: 100%;
+    border-radius: 10px;
+    background: #000;
+}
 
-        /* PLAYER (60% bigger area) */
-        #playerContainer {
-            width: 60%;
-            position: sticky;
-            top: 20px;
-            display: none;
-            transition: width 0.3s ease;
-        }
-
-        #playerContainer.expanded {
-            width: 100%;
-        }
-
-        video {
-            width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 120, 200, 0.15);
-            background: #000;
-        }
-
-        video::-webkit-media-controls-download-button {
-            display: none;
-        }
-
-        video::-webkit-media-controls-enclosure {
-            overflow: hidden;
-        }
-    </style>
+video::-webkit-media-controls-download-button {
+    display: none;
+}
+</style>
 </head>
 
 <body>
 
-    <h1>Videos</h1>
+<h1>Videos</h1>
 
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search videos..." />
-    </div>
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search videos..." />
+</div>
 
-    <div class="toggle-container">
-        <button class="toggle-btn" id="toggleListBtn">Hide list</button>
-    </div>
+<div class="content-wrapper">
 
-    <div class="content-wrapper">
-
+    <div class="list-panel" id="listPanel">
+        <button class="toggle-arrow" id="toggleBtn">◀</button>
         <ul id="resourceList"></ul>
-
-        <div id="playerContainer">
-            <video
-                id="videoPlayer"
-                controls
-                controlsList="nodownload noplaybackrate"
-                disablePictureInPicture
-                oncontextmenu="return false"
-            >
-                Your browser does not support the video tag.
-            </video>
-        </div>
-
     </div>
 
-    <script>
-        const list = document.getElementById("resourceList");
-        const searchInput = document.getElementById("searchInput");
-        const playerContainer = document.getElementById("playerContainer");
-        const videoPlayer = document.getElementById("videoPlayer");
-        const toggleBtn = document.getElementById("toggleListBtn");
+    <div id="playerContainer">
+        <video
+            id="videoPlayer"
+            controls
+            controlsList="nodownload noplaybackrate"
+            disablePictureInPicture
+            oncontextmenu="return false">
+        </video>
+    </div>
 
-        let allVideos = [];
-        let listCollapsed = false;
+</div>
 
-        function renderList(items) {
-            list.innerHTML = "";
+<script>
+const list = document.getElementById("resourceList");
+const searchInput = document.getElementById("searchInput");
+const videoPlayer = document.getElementById("videoPlayer");
+const playerContainer = document.getElementById("playerContainer");
+const listPanel = document.getElementById("listPanel");
+const toggleBtn = document.getElementById("toggleBtn");
 
-            if (items.length === 0) {
-                list.innerHTML = "<li>No matching videos found.</li>";
-                return;
-            }
+let allVideos = [];
+let collapsed = false;
 
-            items.forEach(item => {
-                const li = document.createElement("li");
-                const link = document.createElement("a");
+function renderList(items) {
+    list.innerHTML = "";
+    items.forEach(item => {
+        const li = document.createElement("li");
+        const link = document.createElement("a");
 
-                link.textContent = item.title;
+        link.textContent = item.title;
+        link.onclick = () => {
+            videoPlayer.src = item.file;
+            playerContainer.style.display = "block";
+            videoPlayer.play();
+        };
 
-                link.addEventListener("click", (e) => {
-                    e.preventDefault();
+        li.appendChild(link);
+        list.appendChild(li);
+    });
+}
 
-                    videoPlayer.pause();
-                    videoPlayer.src = item.file;
-                    videoPlayer.load();
+toggleBtn.onclick = () => {
+    collapsed = !collapsed;
+    listPanel.classList.toggle("collapsed", collapsed);
+    toggleBtn.textContent = collapsed ? "▶" : "◀";
+};
 
-                    playerContainer.style.display = "block";
-                    videoPlayer.play();
-                });
+fetch(`videos.json?v=${Date.now()}`)
+.then(res => res.json())
+.then(data => {
+    allVideos = data.videos;
+    renderList(allVideos);
+});
 
-                li.appendChild(link);
-                list.appendChild(li);
-            });
-        }
-
-        toggleBtn.addEventListener("click", () => {
-            listCollapsed = !listCollapsed;
-
-            if (listCollapsed) {
-                list.classList.add("collapsed");
-                playerContainer.classList.add("expanded");
-                toggleBtn.textContent = "Show list";
-            } else {
-                list.classList.remove("collapsed");
-                playerContainer.classList.remove("expanded");
-                toggleBtn.textContent = "Hide list";
-            }
-        });
-
-        fetch(`videos.json?v=${Date.now()}`)
-            .then(response => response.json())
-            .then(data => {
-                allVideos = data.videos;
-                renderList(allVideos);
-            })
-            .catch(() => {
-                list.innerHTML = "<li>Failed to load videos.</li>";
-            });
-
-        searchInput.addEventListener("input", () => {
-            const query = searchInput.value.toLowerCase();
-            const filtered = allVideos.filter(item =>
-                item.title.toLowerCase().includes(query)
-            );
-            renderList(filtered);
-        });
-    </script>
+searchInput.oninput = () => {
+    const q = searchInput.value.toLowerCase();
+    renderList(allVideos.filter(v => v.title.toLowerCase().includes(q)));
+};
+</script>
 
 </body>
-
 </html>
