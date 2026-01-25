@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Video Player</title>
@@ -35,6 +36,8 @@
 <video
     id="videoPlayer"
     controls
+    autoplay
+    muted
     controlsList="nodownload noplaybackrate"
     disablePictureInPicture
     oncontextmenu="return false"
@@ -45,11 +48,18 @@
 <script>
     const params = new URLSearchParams(window.location.search);
     const file = params.get("file");
+    const player = document.getElementById("videoPlayer");
 
     if (file) {
-        document.getElementById("videoPlayer").src = file;
+        player.src = file;
+
+        // Required for autoplay to work reliably
+        player.play().catch(() => {
+            // Autoplay may be blocked; user interaction will start it
+        });
     }
 </script>
 
 </body>
+
 </html>
