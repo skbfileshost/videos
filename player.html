@@ -41,7 +41,6 @@ video {
     cursor: pointer;
     opacity: 0.9;
 }
-
 .center-play.hidden { display: none; }
 
 /* CONTROLS */
@@ -69,13 +68,11 @@ video {
     gap: 15px;
 }
 
-/* BUTTONS */
 .btn {
     cursor: pointer;
     font-size: 18px;
     opacity: 0.85;
 }
-
 .btn:hover { opacity: 1; }
 
 /* TITLE */
@@ -92,11 +89,21 @@ video {
     background: rgba(255,255,255,0.3);
     cursor: pointer;
 }
-
 .progress-filled {
     height: 100%;
     width: 0%;
     background: #e50914;
+}
+
+/* VOLUME */
+.volume {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.volume-slider {
+    width: 80px;
 }
 
 /* TIME */
@@ -118,15 +125,7 @@ video {
     padding: 20px;
     overflow-y: auto;
 }
-
-.lessons-panel.open {
-    transform: translateX(0);
-}
-
-.lessons-panel h3 {
-    margin: 0 0 15px;
-    font-size: 16px;
-}
+.lessons-panel.open { transform: translateX(0); }
 
 .lesson {
     padding: 10px;
@@ -136,13 +135,33 @@ video {
     margin-bottom: 6px;
     color: #ccc;
 }
-
 .lesson:hover { background: #222; }
-
 .lesson.active {
     background: #e50914;
     color: #fff;
     font-weight: 600;
+}
+
+/* VOLUME FEEDBACK */
+.volume-indicator {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 50%;
+    width: 140px;
+    height: 140px;
+    margin: auto;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.volume-indicator.show {
+    opacity: 1;
 }
 
 /* HIDE CURSOR */
@@ -163,6 +182,8 @@ video {
 
     <div class="center-play" id="centerPlay">▶</div>
 
+    <div class="volume-indicator" id="volumeIndicator">50%</div>
+
     <div class="controls">
         <div class="progress" id="progress">
             <div class="progress-filled" id="progressFilled"></div>
@@ -173,13 +194,18 @@ video {
         <div class="controls-row">
             <div class="btn" id="playBtn">▶</div>
             <div class="time" id="time">0:00 / 0:00</div>
+
+            <div class="volume">
+                <div class="btn" id="muteBtn">🔊</div>
+                <input type="range" min="0" max="1" step="0.01" class="volume-slider" id="volumeSlider">
+            </div>
+
             <div style="flex:1"></div>
             <div class="btn" id="lessonsBtn">☰</div>
         </div>
     </div>
 
     <div class="lessons-panel" id="lessonsPanel">
-        <h3>Lessons</h3>
         <div id="lessonList"></div>
     </div>
 
@@ -197,123 +223,114 @@ const lessonsBtn = document.getElementById("lessonsBtn");
 const lessonsPanel = document.getElementById("lessonsPanel");
 const lessonList = document.getElementById("lessonList");
 const videoTitle = document.getElementById("videoTitle");
+const volumeSlider = document.getElementById("volumeSlider");
+const muteBtn = document.getElementById("muteBtn");
+const volumeIndicator = document.getElementById("volumeIndicator");
 
 let videos = [];
 let hideTimer;
+let volumeTimer;
+let lastVolume = 0.5;
 let currentFile = new URLSearchParams(location.search).get("file");
 
-/* LOAD VIDEOS */
+/* LOAD */
 fetch(`videos.json?v=${Date.now()}`)
 .then(r => r.json())
 .then(data => {
     videos = data.videos;
-    if (!currentFile && videos.length) currentFile = videos[0].file;
+    if (!currentFile) currentFile = videos[0].file;
     loadVideo(currentFile);
-    renderLessons();
 });
 
-/* VIDEO LOGIC */
+/* VIDEO */
 function loadVideo(file) {
     currentFile = file;
     video.src = file;
-    video.play().catch(()=>{});
+    video.volume = lastVolume;
+    volumeSlider.value = video.volume;
     updateTitle();
-    highlightLesson();
+    video.play().catch(()=>{});
 }
 
 function togglePlay() {
-    if (video.paused) video.play();
-    else video.pause();
+    video.paused ? video.play() : video.pause();
 }
 
-/* VIDEO EVENTS */
-video.addEventListener("click", (e) => {
+/* EVENTS */
+video.onclick = () => {
     if (lessonsPanel.classList.contains("open")) return;
     togglePlay();
-});
+};
 
-video.addEventListener("play", () => {
+video.onplay = () => {
     centerPlay.classList.add("hidden");
     playBtn.textContent = "⏸";
-});
+};
 
-video.addEventListener("pause", () => {
+video.onpause = () => {
     centerPlay.classList.remove("hidden");
     playBtn.textContent = "▶";
-});
+};
 
-video.addEventListener("timeupdate", () => {
-    const pct = (video.currentTime / video.duration) * 100;
-    progressFilled.style.width = pct + "%";
+video.ontimeupdate = () => {
+    progressFilled.style.width = (video.currentTime / video.duration * 100) + "%";
     timeEl.textContent = format(video.currentTime) + " / " + format(video.duration);
-});
+};
 
-/* SPACE BAR */
-document.addEventListener("keydown", (e) => {
-    if (e.code === "Space") {
-        e.preventDefault();
-        togglePlay();
+progress.onclick = e => {
+    video.currentTime = (e.offsetX / progress.offsetWidth) * video.duration;
+};
+
+/* VOLUME */
+volumeSlider.oninput = () => setVolume(volumeSlider.value);
+
+muteBtn.onclick = toggleMute;
+
+function toggleMute() {
+    if (video.muted) {
+        video.muted = false;
+        setVolume(lastVolume);
+    } else {
+        video.muted = true;
+        showVolume("🔇");
     }
-});
+}
 
-/* PROGRESS SEEK */
-progress.addEventListener("click", e => {
-    const pct = e.offsetX / progress.offsetWidth;
-    video.currentTime = pct * video.duration;
-});
+function setVolume(v) {
+    video.muted = false;
+    video.volume = v;
+    lastVolume = v;
+    volumeSlider.value = v;
+    showVolume(Math.round(v * 100) + "%");
+}
 
-/* CONTROLS */
-centerPlay.onclick = togglePlay;
-playBtn.onclick = togglePlay;
+function showVolume(text) {
+    volumeIndicator.textContent = text;
+    volumeIndicator.classList.add("show");
+    clearTimeout(volumeTimer);
+    volumeTimer = setTimeout(() => {
+        volumeIndicator.classList.remove("show");
+    }, 600);
+}
+
+/* KEYBOARD */
+document.onkeydown = e => {
+    if (e.code === "Space") { e.preventDefault(); togglePlay(); }
+    if (e.code === "ArrowUp") setVolume(Math.min(video.volume + 0.1, 1));
+    if (e.code === "ArrowDown") setVolume(Math.max(video.volume - 0.1, 0));
+    if (e.key.toLowerCase() === "m") toggleMute();
+};
 
 /* LESSONS */
-lessonsBtn.onclick = (e) => {
+lessonsBtn.onclick = e => {
     e.stopPropagation();
     lessonsPanel.classList.toggle("open");
 };
 
-lessonsPanel.addEventListener("click", e => e.stopPropagation());
+document.onclick = () => lessonsPanel.classList.remove("open");
 
-document.addEventListener("click", () => {
-    lessonsPanel.classList.remove("open");
-});
-
-/* RENDER LESSONS */
-function renderLessons() {
-    lessonList.innerHTML = "";
-    videos.forEach(v => {
-        const div = document.createElement("div");
-        div.className = "lesson";
-        div.textContent = v.title;
-
-        div.onclick = (e) => {
-            e.stopPropagation();
-            loadVideo(v.file);
-            history.replaceState(null, "", `?file=${encodeURIComponent(v.file)}`);
-            lessonsPanel.classList.remove("open");
-        };
-
-        lessonList.appendChild(div);
-    });
-    highlightLesson();
-}
-
-function highlightLesson() {
-    document.querySelectorAll(".lesson").forEach(l => {
-        l.classList.toggle(
-            "active",
-            l.textContent + ".mp4" === decodeURIComponent(currentFile)
-        );
-    });
-}
-
-function updateTitle() {
-    const match = videos.find(v => v.file === currentFile);
-    videoTitle.textContent = match ? match.title : "";
-}
-
-/* AUTO HIDE CONTROLS */
-wrapper.addEventListener("mousemove", () => {
+/* UI */
+wrapper.onmousemove = () => {
     wrapper.classList.add("show-controls");
     wrapper.classList.remove("hide-cursor");
     clearTimeout(hideTimer);
@@ -321,9 +338,13 @@ wrapper.addEventListener("mousemove", () => {
         wrapper.classList.remove("show-controls");
         wrapper.classList.add("hide-cursor");
     }, 2500);
-});
+};
 
-/* TIME FORMAT */
+function updateTitle() {
+    const v = videos.find(x => x.file === currentFile);
+    videoTitle.textContent = v ? v.title : "";
+}
+
 function format(t) {
     if (!t) return "0:00";
     const m = Math.floor(t / 60);
