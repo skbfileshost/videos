@@ -5,10 +5,7 @@
 <title>Player</title>
 
 <style>
-/* ===== RESET / BASE ===== */
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -18,7 +15,7 @@ body {
     color: #fff;
 }
 
-/* ===== PLAYER LAYOUT ===== */
+/* PLAYER */
 .player-wrapper {
     position: relative;
     width: 100vw;
@@ -33,16 +30,7 @@ video {
     background: #000;
 }
 
-/* Disable native UI bits */
-video::-webkit-media-controls {
-    display: none !important;
-}
-
-video::-webkit-media-controls-enclosure {
-    display: none !important;
-}
-
-/* ===== CENTER PLAY BUTTON ===== */
+/* CENTER PLAY */
 .center-play {
     position: absolute;
     inset: 0;
@@ -52,21 +40,18 @@ video::-webkit-media-controls-enclosure {
     font-size: 80px;
     cursor: pointer;
     opacity: 0.9;
-    transition: opacity 0.2s;
 }
 
-.center-play.hidden {
-    display: none;
-}
+.center-play.hidden { display: none; }
 
-/* ===== CONTROLS ===== */
+/* CONTROLS */
 .controls {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
     padding: 15px 20px;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -84,20 +69,16 @@ video::-webkit-media-controls-enclosure {
     gap: 15px;
 }
 
-/* Buttons */
 .btn {
     cursor: pointer;
     font-size: 18px;
     opacity: 0.85;
 }
 
-.btn:hover {
-    opacity: 1;
-}
+.btn:hover { opacity: 1; }
 
-/* ===== PROGRESS BAR ===== */
+/* PROGRESS */
 .progress {
-    position: relative;
     height: 4px;
     background: rgba(255,255,255,0.3);
     cursor: pointer;
@@ -109,13 +90,13 @@ video::-webkit-media-controls-enclosure {
     background: #e50914;
 }
 
-/* ===== TIME ===== */
+/* TIME */
 .time {
     font-size: 13px;
     opacity: 0.8;
 }
 
-/* ===== LESSONS OVERLAY ===== */
+/* LESSONS PANEL */
 .lessons-panel {
     position: absolute;
     top: 0;
@@ -136,7 +117,6 @@ video::-webkit-media-controls-enclosure {
 .lessons-panel h3 {
     margin: 0 0 15px;
     font-size: 16px;
-    font-weight: 600;
 }
 
 .lesson {
@@ -148,9 +128,7 @@ video::-webkit-media-controls-enclosure {
     color: #ccc;
 }
 
-.lesson:hover {
-    background: #222;
-}
+.lesson:hover { background: #222; }
 
 .lesson.active {
     background: #e50914;
@@ -158,7 +136,7 @@ video::-webkit-media-controls-enclosure {
     font-weight: 600;
 }
 
-/* ===== HIDE CURSOR ===== */
+/* HIDE CURSOR */
 .player-wrapper.hide-cursor {
     cursor: none;
 }
@@ -176,7 +154,7 @@ video::-webkit-media-controls-enclosure {
 
     <div class="center-play" id="centerPlay">▶</div>
 
-    <div class="controls" id="controls">
+    <div class="controls">
         <div class="progress" id="progress">
             <div class="progress-filled" id="progressFilled"></div>
         </div>
@@ -208,11 +186,11 @@ const lessonsBtn = document.getElementById("lessonsBtn");
 const lessonsPanel = document.getElementById("lessonsPanel");
 const lessonList = document.getElementById("lessonList");
 
-let hideTimer;
 let videos = [];
+let hideTimer;
 let currentFile = new URLSearchParams(location.search).get("file");
 
-/* ===== LOAD VIDEOS ===== */
+/* LOAD VIDEOS */
 fetch(`videos.json?v=${Date.now()}`)
 .then(r => r.json())
 .then(data => {
@@ -222,7 +200,7 @@ fetch(`videos.json?v=${Date.now()}`)
     renderLessons();
 });
 
-/* ===== VIDEO CONTROL ===== */
+/* VIDEO LOGIC */
 function loadVideo(file) {
     currentFile = file;
     video.src = file;
@@ -235,7 +213,12 @@ function togglePlay() {
     else video.pause();
 }
 
-/* ===== UI UPDATES ===== */
+/* VIDEO EVENTS */
+video.addEventListener("click", (e) => {
+    e.stopPropagation();
+    togglePlay();
+});
+
 video.addEventListener("play", () => {
     centerPlay.classList.add("hidden");
     playBtn.textContent = "⏸";
@@ -252,22 +235,42 @@ video.addEventListener("timeupdate", () => {
     timeEl.textContent = format(video.currentTime) + " / " + format(video.duration);
 });
 
+/* PROGRESS SEEK */
 progress.addEventListener("click", e => {
     const pct = e.offsetX / progress.offsetWidth;
     video.currentTime = pct * video.duration;
 });
 
-/* ===== LESSONS ===== */
+/* CONTROLS */
+centerPlay.onclick = togglePlay;
+playBtn.onclick = togglePlay;
+
+/* LESSONS */
+lessonsBtn.onclick = (e) => {
+    e.stopPropagation();
+    lessonsPanel.classList.toggle("open");
+};
+
+lessonsPanel.addEventListener("click", e => e.stopPropagation());
+
+document.addEventListener("click", () => {
+    lessonsPanel.classList.remove("open");
+});
+
 function renderLessons() {
     lessonList.innerHTML = "";
     videos.forEach(v => {
         const div = document.createElement("div");
         div.className = "lesson";
         div.textContent = v.title;
-        div.onclick = () => {
+
+        div.onclick = (e) => {
+            e.stopPropagation();
             loadVideo(v.file);
             history.replaceState(null, "", `?file=${encodeURIComponent(v.file)}`);
+            lessonsPanel.classList.remove("open");
         };
+
         lessonList.appendChild(div);
     });
     highlightLesson();
@@ -275,18 +278,14 @@ function renderLessons() {
 
 function highlightLesson() {
     document.querySelectorAll(".lesson").forEach(l => {
-        l.classList.toggle("active", l.textContent + ".mp4" === decodeURIComponent(currentFile));
+        l.classList.toggle(
+            "active",
+            l.textContent + ".mp4" === decodeURIComponent(currentFile)
+        );
     });
 }
 
-/* ===== EVENTS ===== */
-centerPlay.onclick = togglePlay;
-playBtn.onclick = togglePlay;
-
-lessonsBtn.onclick = () => {
-    lessonsPanel.classList.toggle("open");
-};
-
+/* AUTO HIDE CONTROLS */
 wrapper.addEventListener("mousemove", () => {
     wrapper.classList.add("show-controls");
     wrapper.classList.remove("hide-cursor");
@@ -297,7 +296,7 @@ wrapper.addEventListener("mousemove", () => {
     }, 2500);
 });
 
-/* ===== HELPERS ===== */
+/* TIME FORMAT */
 function format(t) {
     if (!t) return "0:00";
     const m = Math.floor(t / 60);
