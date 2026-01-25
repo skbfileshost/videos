@@ -1,0 +1,42 @@
+name: Generate videos.json
+
+on:
+  push:
+    paths:
+      - "*.mp4"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build videos.json
+        run: |
+          echo '{ "videos": [' > videos.json
+          first=true
+
+          for file in *.mp4; do
+            [ -e "$file" ] || continue
+
+            title=$(basename "$file" .mp4)
+
+            if [ "$first" = false ]; then
+              echo ',' >> videos.json
+            fi
+            first=false
+
+            echo "  { \"title\": \"$title\", \"file\": \"$file\" }" >> videos.json
+          done
+
+          echo '] }' >> videos.json
+
+      - name: Commit generated file
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add videos.json
+          git commit -m "Auto-generate videos.json" || echo "No changes"
+          git push
