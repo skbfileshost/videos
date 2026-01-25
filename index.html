@@ -22,7 +22,7 @@
         }
 
         .search-container {
-            max-width: 700px;
+            max-width: 1100px;
             margin: 0 auto 15px auto;
         }
 
@@ -40,13 +40,22 @@
             border-color: #00a8e8;
         }
 
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
         ul {
-            max-width: 700px;
-            margin: 20px auto;
+            flex: 1;
             background: #ffffff;
             border-radius: 10px;
             padding: 25px 35px;
             box-shadow: 0 10px 30px rgba(0, 120, 200, 0.08);
+            max-height: calc(100vh - 220px);
+            overflow-y: auto;
         }
 
         li {
@@ -73,9 +82,10 @@
         }
 
         #playerContainer {
+            flex: 1;
+            position: sticky;
+            top: 20px;
             display: none;
-            max-width: 700px;
-            margin: 30px auto;
         }
 
         video {
@@ -103,18 +113,22 @@
         <input type="text" id="searchInput" placeholder="Search videos..." />
     </div>
 
-    <ul id="resourceList"></ul>
+    <div class="content-wrapper">
 
-    <div id="playerContainer">
-        <video
-            id="videoPlayer"
-            controls
-            controlsList="nodownload noplaybackrate"
-            disablePictureInPicture
-            oncontextmenu="return false"
-        >
-            Your browser does not support the video tag.
-        </video>
+        <ul id="resourceList"></ul>
+
+        <div id="playerContainer">
+            <video
+                id="videoPlayer"
+                controls
+                controlsList="nodownload noplaybackrate"
+                disablePictureInPicture
+                oncontextmenu="return false"
+            >
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
     </div>
 
     <script>
@@ -148,8 +162,6 @@
 
                     playerContainer.style.display = "block";
                     videoPlayer.play();
-
-                    playerContainer.scrollIntoView({ behavior: "smooth" });
                 });
 
                 li.appendChild(link);
