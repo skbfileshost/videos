@@ -23,7 +23,7 @@
 
         .search-container {
             max-width: 1100px;
-            margin: 0 auto 15px auto;
+            margin: 0 auto 10px auto;
         }
 
         #searchInput {
@@ -40,6 +40,25 @@
             border-color: #00a8e8;
         }
 
+        .toggle-container {
+            max-width: 1100px;
+            margin: 0 auto 10px auto;
+            text-align: right;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #0077c8;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .toggle-btn:hover {
+            color: #00a8e8;
+        }
+
         .content-wrapper {
             display: flex;
             gap: 30px;
@@ -48,14 +67,22 @@
             align-items: flex-start;
         }
 
+        /* LIST (40% narrower) */
         ul {
-            flex: 1;
+            width: 40%;
             background: #ffffff;
             border-radius: 10px;
             padding: 25px 35px;
             box-shadow: 0 10px 30px rgba(0, 120, 200, 0.08);
-            max-height: calc(100vh - 220px);
+            max-height: calc(100vh - 260px);
             overflow-y: auto;
+            transition: width 0.3s ease, padding 0.3s ease;
+        }
+
+        ul.collapsed {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
         li {
@@ -81,11 +108,17 @@
             border-bottom: 1px solid #00a8e8;
         }
 
+        /* PLAYER (60% bigger area) */
         #playerContainer {
-            flex: 1;
+            width: 60%;
             position: sticky;
             top: 20px;
             display: none;
+            transition: width 0.3s ease;
+        }
+
+        #playerContainer.expanded {
+            width: 100%;
         }
 
         video {
@@ -113,6 +146,10 @@
         <input type="text" id="searchInput" placeholder="Search videos..." />
     </div>
 
+    <div class="toggle-container">
+        <button class="toggle-btn" id="toggleListBtn">Hide list</button>
+    </div>
+
     <div class="content-wrapper">
 
         <ul id="resourceList"></ul>
@@ -136,8 +173,10 @@
         const searchInput = document.getElementById("searchInput");
         const playerContainer = document.getElementById("playerContainer");
         const videoPlayer = document.getElementById("videoPlayer");
+        const toggleBtn = document.getElementById("toggleListBtn");
 
         let allVideos = [];
+        let listCollapsed = false;
 
         function renderList(items) {
             list.innerHTML = "";
@@ -168,6 +207,20 @@
                 list.appendChild(li);
             });
         }
+
+        toggleBtn.addEventListener("click", () => {
+            listCollapsed = !listCollapsed;
+
+            if (listCollapsed) {
+                list.classList.add("collapsed");
+                playerContainer.classList.add("expanded");
+                toggleBtn.textContent = "Show list";
+            } else {
+                list.classList.remove("collapsed");
+                playerContainer.classList.remove("expanded");
+                toggleBtn.textContent = "Hide list";
+            }
+        });
 
         fetch(`videos.json?v=${Date.now()}`)
             .then(response => response.json())
