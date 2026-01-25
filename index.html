@@ -165,9 +165,7 @@ function renderList(items) {
 
         link.textContent = item.title;
         link.onclick = () => {
-            videoPlayer.src = item.file;
-            playerContainer.style.display = "block";
-            videoPlayer.play();
+            window.open(`player.html?file=${encodeURIComponent(item.file)}`, "_blank");
         };
 
         li.appendChild(link);
