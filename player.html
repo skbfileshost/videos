@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Player</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            max-height: calc(100vh - 40px);
+            border-radius: 10px;
+            background: #000;
+        }
+
+        video::-webkit-media-controls-download-button {
+            display: none;
+        }
+
+        video::-webkit-media-controls-enclosure {
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+<video
+    id="videoPlayer"
+    controls
+    controlsList="nodownload noplaybackrate"
+    disablePictureInPicture
+    oncontextmenu="return false"
+>
+    Your browser does not support the video tag.
+</video>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const file = params.get("file");
+
+    if (file) {
+        document.getElementById("videoPlayer").src = file;
+    }
+</script>
+
+</body>
+</html>
