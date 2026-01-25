@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Videos</title>
+
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5fbff, #eef6fb);
+            color: #1f2d3d;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #0a3d62;
+            margin-bottom: 20px;
+        }
+
+        .search-container {
+            max-width: 700px;
+            margin: 0 auto 15px auto;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1px solid #cfe6f5;
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0, 120, 200, 0.06);
+        }
+
+        #searchInput:focus {
+            border-color: #00a8e8;
+        }
+
+        ul {
+            max-width: 700px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 25px 35px;
+            box-shadow: 0 10px 30px rgba(0, 120, 200, 0.08);
+        }
+
+        li {
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        li::marker {
+            color: #00a8e8;
+        }
+
+        a {
+            color: #0077c8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease, border-bottom 0.2s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        a:hover {
+            color: #00a8e8;
+            border-bottom: 1px solid #00a8e8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Videos</h1>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search videos..." />
+    </div>
+
+    <ul id="resourceList"></ul>
+
+    <script>
+        const list = document.getElementById("resourceList");
+        const searchInput = document.getElementById("searchInput");
+        let allVideos = [];
+
+        function renderList(items) {
+            list.innerHTML = "";
+
+            if (items.length === 0) {
+                list.innerHTML = "<li>No matching videos found.</li>";
+                return;
+            }
+
+            items.forEach(item => {
+                const li = document.createElement("li");
+                const link = document.createElement("a");
+
+                link.href = item.file;
+                link.textContent = item.title;
+                link.target = "_blank";
+
+                li.appendChild(link);
+                list.appendChild(li);
+            });
+        }
+
+        fetch(`videos.json?v=${Date.now()}`)
+            .then(response => response.json())
+            .then(data => {
+                allVideos = data.videos;
+                renderList(allVideos);
+            })
+            .catch(() => {
+                list.innerHTML = "<li>Failed to load videos.</li>";
+            });
+
+        searchInput.addEventListener("input", () => {
+            const query = searchInput.value.toLowerCase();
+            const filtered = allVideos.filter(item =>
+                item.title.toLowerCase().includes(query)
+            );
+            renderList(filtered);
+        });
+    </script>
+
+</body>
+
+</html>
