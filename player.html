@@ -1,412 +1,451 @@
+Put your HTML text here
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Player</title>
+    <meta charset="UTF-8">
+    <title>Player</title>
 
-<style>
-* { box-sizing: border-box; }
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-body {
-    margin: 0;
-    background: #000;
-    font-family: "Segoe UI", Arial, sans-serif;
-    overflow: hidden;
-    color: #fff;
-}
+        body {
+            margin: 0;
+            background: #000;
+            font-family: "Segoe UI", Arial, sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
 
-.player-wrapper {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    background: #000;
-}
+        .player-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+        }
 
-video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #000;
-}
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
 
-.center-play {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 80px;
-    cursor: pointer;
-    opacity: 0.9;
-}
-.center-play.hidden { display: none; }
+        .center-play {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            cursor: pointer;
+            opacity: 0.9;
+        }
 
-.controls {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 18px 24px;
-    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
+        .center-play.hidden {
+            display: none;
+        }
 
-.player-wrapper.show-controls .controls { opacity: 1; }
+        .controls {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 18px 24px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
 
-.controls-row {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
+        .player-wrapper.show-controls .controls {
+            opacity: 1;
+        }
 
-.btn {
-    cursor: pointer;
-    font-size: 18px;
-    opacity: 0.85;
-}
-.btn:hover { opacity: 1; }
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-.video-title {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    opacity: 0.9;
-}
+        .btn {
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.85;
+        }
 
-.progress {
-    height: 4px;
-    background: rgba(255,255,255,0.3);
-    cursor: pointer;
-}
-.progress-filled {
-    height: 100%;
-    width: 0%;
-    background: #e50914;
-}
+        .btn:hover {
+            opacity: 1;
+        }
 
-.volume {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
+        .video-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
 
-.volume-slider {
-    width: 80px;
-}
+        .progress {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
 
-.time {
-    font-size: 13px;
-    opacity: 0.8;
-}
+        .progress-filled {
+            height: 100%;
+            width: 0%;
+            background: #e50914;
+        }
 
-.lessons-panel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 320px;
-    height: 100%;
-    background: rgba(20,20,20,0.97);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    padding: 20px;
-    overflow-y: auto;
-}
-.lessons-panel.open { transform: translateX(0); }
+        .volume {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-.lesson {
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: #ccc;
-}
-.lesson:hover { background: #222; }
-.lesson.active {
-    background: #e50914;
-    color: #fff;
-    font-weight: 600;
-}
+        .volume-slider {
+            width: 80px;
+        }
 
-.volume-indicator {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 42px;
-    background: rgba(0,0,0,0.4);
-    border-radius: 50%;
-    width: 140px;
-    height: 140px;
-    margin: auto;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-}
-.volume-indicator.show { opacity: 1; }
+        .time {
+            font-size: 13px;
+            opacity: 0.8;
+        }
 
-#seekLeft {
-    left: 15%;
-    right: auto;
-}
+        .lessons-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 320px;
+            height: 100%;
+            background: rgba(20, 20, 20, 0.97);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            padding: 20px;
+            overflow-y: auto;
+        }
 
-#seekRight {
-    right: 15%;
-    left: auto;
-}
+        .lessons-panel.open {
+            transform: translateX(0);
+        }
 
-.player-wrapper.hide-cursor { cursor: none; }
-</style>
+        .lesson {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #ccc;
+        }
+
+        .lesson:hover {
+            background: #222;
+        }
+
+        .lesson.active {
+            background: #e50914;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .volume-indicator {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            width: 140px;
+            height: 140px;
+            margin: auto;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .volume-indicator.show {
+            opacity: 1;
+        }
+
+        #seekLeft {
+            left: 15%;
+            right: auto;
+        }
+
+        #seekRight {
+            right: 15%;
+            left: auto;
+        }
+
+        .player-wrapper.hide-cursor {
+            cursor: none;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="player-wrapper" id="playerWrapper">
+    <div class="player-wrapper" id="playerWrapper">
 
-    <video id="video" disablePictureInPicture oncontextmenu="return false"></video>
+        <video id="video" disablePictureInPicture oncontextmenu="return false"></video>
 
-    <div class="center-play" id="centerPlay">▶</div>
+        <div class="center-play" id="centerPlay">▶</div>
 
-    <div class="volume-indicator" id="volumeIndicator">50%</div>
-    <div class="volume-indicator" id="seekLeft">◀◀ 5s</div>
-    <div class="volume-indicator" id="seekRight">▶▶ 5s</div>
+        <div class="volume-indicator" id="volumeIndicator">50%</div>
+        <div class="volume-indicator" id="seekLeft">◀◀ 5s</div>
+        <div class="volume-indicator" id="seekRight">▶▶ 5s</div>
 
-    <div class="controls">
-        <div class="progress" id="progress">
-            <div class="progress-filled" id="progressFilled"></div>
-        </div>
-
-        <div class="video-title" id="videoTitle"></div>
-
-        <div class="controls-row">
-            <div class="btn" id="playBtn">▶</div>
-            <div class="time" id="time">0:00 / 0:00</div>
-
-            <div class="volume">
-                <div class="btn" id="muteBtn">🔊</div>
-                <input type="range" min="0" max="1" step="0.01" class="volume-slider" id="volumeSlider">
+        <div class="controls">
+            <div class="progress" id="progress">
+                <div class="progress-filled" id="progressFilled"></div>
             </div>
 
-            <div style="flex:1"></div>
-            <div class="btn" id="lessonsBtn">☰</div>
+            <div class="video-title" id="videoTitle"></div>
+
+            <div class="controls-row">
+                <div class="btn" id="playBtn">▶</div>
+                <div class="time" id="time">0:00 / 0:00</div>
+
+                <div class="volume">
+                    <div class="btn" id="muteBtn">🔊</div>
+                    <input type="range" min="0" max="1" step="0.01" class="volume-slider" id="volumeSlider">
+                </div>
+
+                <div style="flex:1"></div>
+                <div class="btn" id="lessonsBtn">☰</div>
+            </div>
         </div>
+
+        <div class="lessons-panel" id="lessonsPanel">
+            <div id="lessonList"></div>
+        </div>
+
     </div>
 
-    <div class="lessons-panel" id="lessonsPanel">
-        <div id="lessonList"></div>
-    </div>
+    <script>
+        const video = document.getElementById("video");
+        const wrapper = document.getElementById("playerWrapper");
+        const centerPlay = document.getElementById("centerPlay");
+        const playBtn = document.getElementById("playBtn");
+        const timeEl = document.getElementById("time");
+        const progress = document.getElementById("progress");
+        const progressFilled = document.getElementById("progressFilled");
+        const lessonsBtn = document.getElementById("lessonsBtn");
+        const lessonsPanel = document.getElementById("lessonsPanel");
+        const lessonList = document.getElementById("lessonList");
+        const videoTitle = document.getElementById("videoTitle");
+        const volumeSlider = document.getElementById("volumeSlider");
+        const muteBtn = document.getElementById("muteBtn");
+        const volumeIndicator = document.getElementById("volumeIndicator");
+        const seekLeft = document.getElementById("seekLeft");
+        const seekRight = document.getElementById("seekRight");
 
-</div>
+        let videos = [];
+        let hideTimer;
+        let volumeTimer;
+        let lastVolume = 0.5;
+        let currentFile = new URLSearchParams(location.search).get("file");
 
-<script>
-const video = document.getElementById("video");
-const wrapper = document.getElementById("playerWrapper");
-const centerPlay = document.getElementById("centerPlay");
-const playBtn = document.getElementById("playBtn");
-const timeEl = document.getElementById("time");
-const progress = document.getElementById("progress");
-const progressFilled = document.getElementById("progressFilled");
-const lessonsBtn = document.getElementById("lessonsBtn");
-const lessonsPanel = document.getElementById("lessonsPanel");
-const lessonList = document.getElementById("lessonList");
-const videoTitle = document.getElementById("videoTitle");
-const volumeSlider = document.getElementById("volumeSlider");
-const muteBtn = document.getElementById("muteBtn");
-const volumeIndicator = document.getElementById("volumeIndicator");
-const seekLeft = document.getElementById("seekLeft");
-const seekRight = document.getElementById("seekRight");
+        /* LOAD */
+        fetch(`videos.json?v=${Date.now()}`)
+            .then(r => r.json())
+            .then(data => {
+                videos = data.videos || [];
+                if (!currentFile && videos.length) currentFile = videos[0].file;
+                renderLessons();
+                loadVideo(currentFile);
+            });
 
-let videos = [];
-let hideTimer;
-let volumeTimer;
-let lastVolume = 0.5;
-let currentFile = new URLSearchParams(location.search).get("file");
+        /* VIDEO */
+        function loadVideo(file) {
+            if (!file) return;
+            currentFile = file;
+            video.src = file;
+            video.volume = lastVolume;
+            volumeSlider.value = lastVolume;
+            updateTitle();
+            highlightLesson();
+            video.play().catch(() => {});
+        }
 
-/* LOAD */
-fetch(`videos.json?v=${Date.now()}`)
-.then(r => r.json())
-.then(data => {
-    videos = data.videos || [];
-    if (!currentFile && videos.length) currentFile = videos[0].file;
-    renderLessons();
-    loadVideo(currentFile);
-});
+        function togglePlay() {
+            if (video.paused) video.play();
+            else video.pause();
+        }
 
-/* VIDEO */
-function loadVideo(file) {
-    if (!file) return;
-    currentFile = file;
-    video.src = file;
-    video.volume = lastVolume;
-    volumeSlider.value = lastVolume;
-    updateTitle();
-    highlightLesson();
-    video.play().catch(()=>{});
-}
+        /* VIDEO EVENTS */
+        video.addEventListener("click", () => {
+            if (lessonsPanel.classList.contains("open")) return;
+            togglePlay();
+        });
 
-function togglePlay() {
-    if (video.paused) video.play();
-    else video.pause();
-}
+        video.addEventListener("play", () => {
+            centerPlay.classList.add("hidden");
+            playBtn.textContent = "⏸";
+        });
 
-/* VIDEO EVENTS */
-video.addEventListener("click", () => {
-    if (lessonsPanel.classList.contains("open")) return;
-    togglePlay();
-});
+        video.addEventListener("pause", () => {
+            centerPlay.classList.remove("hidden");
+            playBtn.textContent = "▶";
+        });
 
-video.addEventListener("play", () => {
-    centerPlay.classList.add("hidden");
-    playBtn.textContent = "⏸";
-});
+        video.addEventListener("timeupdate", () => {
+            if (!video.duration) return;
+            progressFilled.style.width = (video.currentTime / video.duration * 100) + "%";
+            timeEl.textContent = format(video.currentTime) + " / " + format(video.duration);
+        });
 
-video.addEventListener("pause", () => {
-    centerPlay.classList.remove("hidden");
-    playBtn.textContent = "▶";
-});
+        /* PROGRESS */
+        progress.addEventListener("click", e => {
+            if (!video.duration) return;
+            video.currentTime = (e.offsetX / progress.offsetWidth) * video.duration;
+        });
 
-video.addEventListener("timeupdate", () => {
-    if (!video.duration) return;
-    progressFilled.style.width = (video.currentTime / video.duration * 100) + "%";
-    timeEl.textContent = format(video.currentTime) + " / " + format(video.duration);
-});
+        /* CONTROLS */
+        centerPlay.onclick = togglePlay;
+        playBtn.onclick = togglePlay;
 
-/* PROGRESS */
-progress.addEventListener("click", e => {
-    if (!video.duration) return;
-    video.currentTime = (e.offsetX / progress.offsetWidth) * video.duration;
-});
+        /* VOLUME */
+        volumeSlider.oninput = () => setVolume(volumeSlider.value);
+        muteBtn.onclick = toggleMute;
 
-/* CONTROLS */
-centerPlay.onclick = togglePlay;
-playBtn.onclick = togglePlay;
+        function toggleMute() {
+            if (video.muted) {
+                video.muted = false;
+                setVolume(lastVolume);
+            } else {
+                video.muted = true;
+                showVolume("🔇");
+            }
+        }
 
-/* VOLUME */
-volumeSlider.oninput = () => setVolume(volumeSlider.value);
-muteBtn.onclick = toggleMute;
+        function setVolume(v) {
+            video.muted = false;
+            video.volume = v;
+            lastVolume = v;
+            volumeSlider.value = v;
+            showVolume(Math.round(v * 100) + "%");
+        }
 
-function toggleMute() {
-    if (video.muted) {
-        video.muted = false;
-        setVolume(lastVolume);
-    } else {
-        video.muted = true;
-        showVolume("🔇");
-    }
-}
+        function showVolume(text) {
+            volumeIndicator.textContent = text;
+            volumeIndicator.classList.add("show");
+            clearTimeout(volumeTimer);
+            volumeTimer = setTimeout(() => {
+                volumeIndicator.classList.remove("show");
+            }, 600);
+        }
 
-function setVolume(v) {
-    video.muted = false;
-    video.volume = v;
-    lastVolume = v;
-    volumeSlider.value = v;
-    showVolume(Math.round(v * 100) + "%");
-}
+        function showSeek(el) {
+            // hide ALL overlays immediately
+            volumeIndicator.classList.remove("show");
+            seekLeft.classList.remove("show");
+            seekRight.classList.remove("show");
 
-function showVolume(text) {
-    volumeIndicator.textContent = text;
-    volumeIndicator.classList.add("show");
-    clearTimeout(volumeTimer);
-    volumeTimer = setTimeout(() => {
-        volumeIndicator.classList.remove("show");
-    }, 600);
-}
+            // show only the requested one
+            el.classList.add("show");
 
-function showSeek(el) {
-    // instantly hide both seek indicators
-    seekLeft.classList.remove("show");
-    seekRight.classList.remove("show");
+            clearTimeout(volumeTimer);
+            volumeTimer = setTimeout(() => {
+                el.classList.remove("show");
+            }, 600);
+        }
 
-    // now show the requested one
-    el.classList.add("show");
+        /* KEYBOARD */
+        document.addEventListener("keydown", e => {
+            if (e.code === "Space") {
+                e.preventDefault();
+                togglePlay();
+            }
+            if (e.code === "ArrowUp") {
+                seekLeft.classList.remove("show");
+                seekRight.classList.remove("show");
+                setVolume(Math.min(video.volume + 0.05, 1));
+            }
 
-    clearTimeout(volumeTimer);
-    volumeTimer = setTimeout(() => {
-        el.classList.remove("show");
-    }, 600);
-}
+            if (e.code === "ArrowDown") {
+                seekLeft.classList.remove("show");
+                seekRight.classList.remove("show");
+                setVolume(Math.max(video.volume - 0.05, 0));
+            }
+            if (e.code === "ArrowRight") {
+                video.currentTime = Math.min(video.currentTime + 5, video.duration || video.currentTime);
+                showSeek(seekRight);
+            }
+            if (e.code === "ArrowLeft") {
+                video.currentTime = Math.max(video.currentTime - 5, 0);
+                showSeek(seekLeft);
+            }
+            if (e.key.toLowerCase() === "m") toggleMute();
+        });
 
-/* KEYBOARD */
-document.addEventListener("keydown", e => {
-    if (e.code === "Space") { e.preventDefault(); togglePlay(); }
-    if (e.code === "ArrowUp") setVolume(Math.min(video.volume + 0.05, 1));
-    if (e.code === "ArrowDown") setVolume(Math.max(video.volume - 0.05, 0));
-    if (e.code === "ArrowRight") {
-        video.currentTime = Math.min(video.currentTime + 5, video.duration || video.currentTime);
-        showSeek(seekRight);
-    }
-    if (e.code === "ArrowLeft") {
-        video.currentTime = Math.max(video.currentTime - 5, 0);
-        showSeek(seekLeft);
-    }
-    if (e.key.toLowerCase() === "m") toggleMute();
-});
-
-/* LESSONS */
-lessonsBtn.onclick = e => {
-    e.stopPropagation();
-    lessonsPanel.classList.toggle("open");
-};
-
-lessonsPanel.addEventListener("click", e => e.stopPropagation());
-
-document.addEventListener("click", () => {
-    lessonsPanel.classList.remove("open");
-});
-
-function renderLessons() {
-    lessonList.innerHTML = "";
-    videos.forEach(v => {
-        const div = document.createElement("div");
-        div.className = "lesson";
-        div.textContent = v.title;
-        div.onclick = e => {
+        /* LESSONS */
+        lessonsBtn.onclick = e => {
             e.stopPropagation();
-            loadVideo(v.file);
-            history.replaceState(null, "", `?file=${encodeURIComponent(v.file)}`);
-            lessonsPanel.classList.remove("open");
+            lessonsPanel.classList.toggle("open");
         };
-        lessonList.appendChild(div);
-    });
-}
 
-function highlightLesson() {
-    document.querySelectorAll(".lesson").forEach(l => {
-        l.classList.toggle(
-            "active",
-            videos.find(v => v.file === currentFile)?.title === l.textContent
-        );
-    });
-}
+        lessonsPanel.addEventListener("click", e => e.stopPropagation());
 
-/* UI */
-wrapper.addEventListener("mousemove", () => {
-    wrapper.classList.add("show-controls");
-    wrapper.classList.remove("hide-cursor");
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-        wrapper.classList.remove("show-controls");
-        wrapper.classList.add("hide-cursor");
-    }, 2500);
-});
+        document.addEventListener("click", () => {
+            lessonsPanel.classList.remove("open");
+        });
 
-function updateTitle() {
-    const v = videos.find(x => x.file === currentFile);
-    videoTitle.textContent = v ? v.title : "";
-}
+        function renderLessons() {
+            lessonList.innerHTML = "";
+            videos.forEach(v => {
+                const div = document.createElement("div");
+                div.className = "lesson";
+                div.textContent = v.title;
+                div.onclick = e => {
+                    e.stopPropagation();
+                    loadVideo(v.file);
+                    history.replaceState(null, "", `?file=${encodeURIComponent(v.file)}`);
+                    lessonsPanel.classList.remove("open");
+                };
+                lessonList.appendChild(div);
+            });
+        }
 
-function format(t) {
-    if (!t) return "0:00";
-    const m = Math.floor(t / 60);
-    const s = Math.floor(t % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-}
-</script>
+        function highlightLesson() {
+            document.querySelectorAll(".lesson").forEach(l => {
+                l.classList.toggle(
+                    "active",
+                    videos.find(v => v.file === currentFile)?.title === l.textContent
+                );
+            });
+        }
+
+        /* UI */
+        wrapper.addEventListener("mousemove", () => {
+            wrapper.classList.add("show-controls");
+            wrapper.classList.remove("hide-cursor");
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => {
+                wrapper.classList.remove("show-controls");
+                wrapper.classList.add("hide-cursor");
+            }, 2500);
+        });
+
+        function updateTitle() {
+            const v = videos.find(x => x.file === currentFile);
+            videoTitle.textContent = v ? v.title : "";
+        }
+
+        function format(t) {
+            if (!t) return "0:00";
+            const m = Math.floor(t / 60);
+            const s = Math.floor(t % 60).toString().padStart(2, "0");
+            return `${m}:${s}`;
+        }
+    </script>
 
 </body>
+
 </html>
