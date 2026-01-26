@@ -318,7 +318,13 @@ function showVolume(text) {
 }
 
 function showSeek(el) {
+    // instantly hide both seek indicators
+    seekLeft.classList.remove("show");
+    seekRight.classList.remove("show");
+
+    // now show the requested one
     el.classList.add("show");
+
     clearTimeout(volumeTimer);
     volumeTimer = setTimeout(() => {
         el.classList.remove("show");
