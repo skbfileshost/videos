@@ -150,6 +150,16 @@ video {
 }
 .volume-indicator.show { opacity: 1; }
 
+#seekLeft {
+    left: 15%;
+    right: auto;
+}
+
+#seekRight {
+    right: 15%;
+    left: auto;
+}
+
 .player-wrapper.hide-cursor { cursor: none; }
 </style>
 </head>
@@ -163,6 +173,8 @@ video {
     <div class="center-play" id="centerPlay">▶</div>
 
     <div class="volume-indicator" id="volumeIndicator">50%</div>
+    <div class="volume-indicator" id="seekLeft">◀◀ 5s</div>
+    <div class="volume-indicator" id="seekRight">▶▶ 5s</div>
 
     <div class="controls">
         <div class="progress" id="progress">
@@ -206,6 +218,8 @@ const videoTitle = document.getElementById("videoTitle");
 const volumeSlider = document.getElementById("volumeSlider");
 const muteBtn = document.getElementById("muteBtn");
 const volumeIndicator = document.getElementById("volumeIndicator");
+const seekLeft = document.getElementById("seekLeft");
+const seekRight = document.getElementById("seekRight");
 
 let videos = [];
 let hideTimer;
@@ -303,13 +317,27 @@ function showVolume(text) {
     }, 600);
 }
 
+function showSeek(el) {
+    el.classList.add("show");
+    clearTimeout(volumeTimer);
+    volumeTimer = setTimeout(() => {
+        el.classList.remove("show");
+    }, 600);
+}
+
 /* KEYBOARD */
 document.addEventListener("keydown", e => {
     if (e.code === "Space") { e.preventDefault(); togglePlay(); }
     if (e.code === "ArrowUp") setVolume(Math.min(video.volume + 0.05, 1));
     if (e.code === "ArrowDown") setVolume(Math.max(video.volume - 0.05, 0));
-    if (e.code === "ArrowRight") { video.currentTime = Math.min(video.currentTime + 5, video.duration || video.currentTime); }
-    if (e.code === "ArrowLeft") { video.currentTime = Math.max(video.currentTime - 5, 0); }
+    if (e.code === "ArrowRight") {
+        video.currentTime = Math.min(video.currentTime + 5, video.duration || video.currentTime);
+        showSeek(seekRight);
+    }
+    if (e.code === "ArrowLeft") {
+        video.currentTime = Math.max(video.currentTime - 5, 0);
+        showSeek(seekLeft);
+    }
     if (e.key.toLowerCase() === "m") toggleMute();
 });
 
