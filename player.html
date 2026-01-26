@@ -306,8 +306,10 @@ function showVolume(text) {
 /* KEYBOARD */
 document.addEventListener("keydown", e => {
     if (e.code === "Space") { e.preventDefault(); togglePlay(); }
-    if (e.code === "ArrowUp") setVolume(Math.min(video.volume + 0.1, 1));
-    if (e.code === "ArrowDown") setVolume(Math.max(video.volume - 0.1, 0));
+    if (e.code === "ArrowUp") setVolume(Math.min(video.volume + 0.05, 1));
+    if (e.code === "ArrowDown") setVolume(Math.max(video.volume - 0.05, 0));
+    if (e.code === "ArrowRight") { video.currentTime = Math.min(video.currentTime + 5, video.duration || video.currentTime); }
+    if (e.code === "ArrowLeft") { video.currentTime = Math.max(video.currentTime - 5, 0); }
     if (e.key.toLowerCase() === "m") toggleMute();
 });
 
