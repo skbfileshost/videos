@@ -278,6 +278,15 @@
             else video.pause();
         }
 
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+
         /* VIDEO EVENTS */
         video.addEventListener("click", () => {
             if (lessonsPanel.classList.contains("open")) return;
@@ -382,6 +391,9 @@
                 showSeek(seekLeft);
             }
             if (e.key.toLowerCase() === "m") toggleMute();
+            if (e.key.toLowerCase() === "f") {
+                toggleFullscreen();
+            }
         });
 
         /* LESSONS */
