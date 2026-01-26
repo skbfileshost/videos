@@ -185,6 +185,76 @@
         .player-wrapper.hide-cursor {
             cursor: none;
         }
+
+        .next-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 40px;
+            pointer-events: none;
+            padding-bottom: 110px;
+        }
+
+        .next-overlay.show {
+            display: flex;
+        }
+
+        .next-card {
+            position: relative;
+            width: 280px;
+            background: #141414;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .next-card:hover {
+            transform: scale(1.03);
+        }
+
+        .next-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            width: 0%;
+            background: #e50914;
+        }
+
+        .next-text {
+            padding: 16px;
+        }
+
+        .next-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .next-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .seek-tooltip {
+            position: absolute;
+            bottom: 48px;
+            padding: 4px 6px;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateX(-50%);
+            transition: opacity 0.1s;
+        }
+
+        .seek-tooltip.show {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -204,6 +274,8 @@
             <div class="progress" id="progress">
                 <div class="progress-filled" id="progressFilled"></div>
             </div>
+
+            <div class="seek-tooltip" id="seekTooltip">0:00</div>
 
             <div class="video-title" id="videoTitle"></div>
 
@@ -225,6 +297,16 @@
             <div id="lessonList"></div>
         </div>
 
+        <div class="next-overlay" id="nextOverlay">
+            <div class="next-card" id="nextBtn">
+                <div class="next-progress" id="nextProgress"></div>
+                <div class="next-text">
+                    <div class="next-label">Up Next</div>
+                    <div class="next-title" id="nextTitle"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -244,22 +326,33 @@
         const volumeIndicator = document.getElementById("volumeIndicator");
         const seekLeft = document.getElementById("seekLeft");
         const seekRight = document.getElementById("seekRight");
+        const nextOverlay = document.getElementById("nextOverlay");
+        const nextBtn = document.getElementById("nextBtn");
+        const nextProgress = document.getElementById("nextProgress");
+        const nextTitle = document.getElementById("nextTitle");
+        const seekTooltip = document.getElementById("seekTooltip");
 
         let videos = [];
         let hideTimer;
         let volumeTimer;
         let lastVolume = 0.5;
         let currentFile = new URLSearchParams(location.search).get("file");
+        let nextTimer = null;
+        let nextShown = false;
 
-        /* LOAD */
+        /* LOAD VIDEOS FROM JSON */
         fetch(`videos.json?v=${Date.now()}`)
             .then(r => r.json())
             .then(data => {
                 videos = data.videos || [];
-                if (!currentFile && videos.length) currentFile = videos[0].file;
+                if (!currentFile && videos.length) {
+                    currentFile = videos[0].file;
+                }
                 renderLessons();
                 loadVideo(currentFile);
             });
+
+
 
         /* VIDEO */
         function loadVideo(file) {
@@ -270,6 +363,7 @@
             volumeSlider.value = lastVolume;
             updateTitle();
             highlightLesson();
+            updateMuteIcon();
             video.play().catch(() => {});
         }
 
@@ -305,9 +399,23 @@
 
         video.addEventListener("timeupdate", () => {
             if (!video.duration) return;
-            progressFilled.style.width = (video.currentTime / video.duration * 100) + "%";
-            timeEl.textContent = format(video.currentTime) + " / " + format(video.duration);
+
+            progressFilled.style.width =
+                (video.currentTime / video.duration * 100) + "%";
+
+            timeEl.textContent =
+                format(video.currentTime) + " / " + format(video.duration);
+
+            if (video.duration - video.currentTime <= 5) {
+                showNextOverlay();
+            } else {
+                hideNextOverlay();
+            }
         });
+
+        video.addEventListener("pause", showControlsTemporarily);
+        video.addEventListener("play", showControlsTemporarily);
+
 
         /* PROGRESS */
         progress.addEventListener("click", e => {
@@ -324,21 +432,25 @@
         muteBtn.onclick = toggleMute;
 
         function toggleMute() {
-            if (video.muted) {
+            if (video.muted || video.volume === 0) {
                 video.muted = false;
-                setVolume(lastVolume);
+                setVolume(lastVolume || 0.5);
             } else {
                 video.muted = true;
                 showVolume("🔇");
             }
+            updateMuteIcon();
         }
 
         function setVolume(v) {
-            video.muted = false;
+            v = Number(v);
+            video.muted = v === 0;
             video.volume = v;
-            lastVolume = v;
+            lastVolume = v > 0 ? v : lastVolume;
             volumeSlider.value = v;
+
             showVolume(Math.round(v * 100) + "%");
+            updateMuteIcon();
         }
 
         function showVolume(text) {
@@ -365,8 +477,18 @@
             }, 600);
         }
 
+        function updateMuteIcon() {
+            if (video.muted || video.volume === 0) {
+                muteBtn.textContent = "🔇";
+            } else {
+                muteBtn.textContent = "🔊";
+            }
+        }
+
         /* KEYBOARD */
         document.addEventListener("keydown", e => {
+            showControlsTemporarily();
+
             if (e.code === "Space") {
                 e.preventDefault();
                 togglePlay();
@@ -434,15 +556,7 @@
         }
 
         /* UI */
-        wrapper.addEventListener("mousemove", () => {
-            wrapper.classList.add("show-controls");
-            wrapper.classList.remove("hide-cursor");
-            clearTimeout(hideTimer);
-            hideTimer = setTimeout(() => {
-                wrapper.classList.remove("show-controls");
-                wrapper.classList.add("hide-cursor");
-            }, 2500);
-        });
+        wrapper.addEventListener("mousemove", showControlsTemporarily);
 
         function updateTitle() {
             const v = videos.find(x => x.file === currentFile);
@@ -455,6 +569,78 @@
             const s = Math.floor(t % 60).toString().padStart(2, "0");
             return `${m}:${s}`;
         }
+
+        function getNextVideo() {
+            const idx = videos.findIndex(v => v.file === currentFile);
+            return videos[idx + 1] || null;
+        }
+
+        function showNextOverlay() {
+            if (nextShown) return;
+
+            const next = getNextVideo();
+            if (!next) return;
+
+            nextShown = true;
+            nextTitle.textContent = next.title;
+            nextOverlay.classList.add("show");
+
+            nextProgress.style.transition = "none";
+            nextProgress.style.width = "0%";
+
+            requestAnimationFrame(() => {
+                nextProgress.style.transition = "width 5s linear";
+                nextProgress.style.width = "100%";
+            });
+
+            nextTimer = setTimeout(() => {
+                loadVideo(next.file);
+                hideNextOverlay();
+            }, 5000);
+        }
+
+        function hideNextOverlay() {
+            nextShown = false;
+            clearTimeout(nextTimer);
+            nextOverlay.classList.remove("show");
+            nextProgress.style.transition = "none";
+            nextProgress.style.width = "0%";
+        }
+
+        nextBtn.onclick = () => {
+            const next = getNextVideo();
+            if (!next) return;
+            loadVideo(next.file);
+            hideNextOverlay();
+        };
+
+        function showControlsTemporarily() {
+            wrapper.classList.add("show-controls");
+            wrapper.classList.remove("hide-cursor");
+            clearTimeout(hideTimer);
+            if (!video.paused) {
+                hideTimer = setTimeout(() => {
+                    wrapper.classList.remove("show-controls");
+                    wrapper.classList.add("hide-cursor");
+                }, 2500);
+            }
+        }
+
+        progress.addEventListener("mousemove", e => {
+            if (!video.duration) return;
+
+            const rect = progress.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            const time = Math.max(0, Math.min(video.duration * percent, video.duration));
+
+            seekTooltip.textContent = format(time);
+            seekTooltip.style.left = `${e.clientX - rect.left}px`;
+            seekTooltip.classList.add("show");
+        });
+
+        progress.addEventListener("mouseleave", () => {
+            seekTooltip.classList.remove("show");
+        });
     </script>
 
 </body>
