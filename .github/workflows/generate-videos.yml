@@ -15,26 +15,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build videos.json (true upload order, no duplicates)
+      - name: Build videos.json (ordered by filename number)
         run: |
+          set -e
+
           echo '{ "videos": [' > videos.json
           first=true
 
-          # Get each mp4 file ONCE, ordered by first commit date
-          git ls-files "*.mp4" | while read file; do
-            commit_date=$(git log --diff-filter=A --follow --format=%ct -1 -- "$file")
-            echo "$commit_date|$file"
-          done | sort -n | while IFS="|" read commit_date file; do
+          # Optional safety check: fail if a file doesn't start with "number. "
+          if git ls-files "*.mp4" | grep -vE '^[0-9]+\. ' ; then
+            echo "❌ All .mp4 files must start with 'number. '"
+            exit 1
+          fi
 
-            title=$(basename "$file" .mp4)
+          git ls-files "*.mp4" \
+            | sed -E 's/^([0-9]+)\. (.+)$/\1|\1. \2/' \
+            | sort -n -t'|' -k1,1 \
+            | while IFS="|" read -r index file; do
 
-            if [ "$first" = false ]; then
-              echo ',' >> videos.json
-            fi
-            first=false
+              # Title without .mp4 and without the leading number
+              title=$(echo "${file%.mp4}" | sed -E 's/^[0-9]+\. //')
 
-            echo "  { \"title\": \"$title\", \"file\": \"$file\" }" >> videos.json
-          done
+              if [ "$first" = false ]; then
+                echo ',' >> videos.json
+              fi
+              first=false
+
+              echo "  { \"title\": \"$title\", \"file\": \"$file\" }" >> videos.json
+            done
 
           echo '] }' >> videos.json
 
